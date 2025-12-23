@@ -1,0 +1,8 @@
+2026 APP
+
+Password for supabase: VINayak@8484
+sb_publishable_pxqSrFMJTGITBgZso2im_g_0srIynKx
+
+sb_secret_e-1gkO1L5j7A2xcsICLfpA_4-moPuj0
+
+https://ihshzupksrhauzvsuxpm.supabase.co
