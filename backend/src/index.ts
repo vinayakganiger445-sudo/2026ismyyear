@@ -205,24 +205,44 @@ app.post('/api/register-intent', async (req, res) => {
 });
 app.post('/api/checkin', async (req, res) => {
   try {
+    console.log('Incoming /api/checkin body:', req.body);
     const { user_id, achieved_points, date } = req.body;
     if (!user_id || achieved_points === undefined) {
       return res.status(400).json({ error: 'Missing user_id or achieved_points' });
     }
+
+    const effectiveDate = date || new Date().toISOString().slice(0, 10);
+
     const { data, error } = await supabase
       .from('checkins')
-      .insert({
-        user_id,
-        achieved_points,
-        date: date || new Date().toISOString().slice(0, 10),
-      })
+      .upsert(
+        {
+          user_id,
+          date: effectiveDate,
+          achieved_points,
+        },
+        {
+          onConflict: 'user_id,date',
+        }
+      )
       .select()
       .single();
-    if (error) throw error;
+
+    if (error) {
+      console.error('Supabase error in /api/checkin:', error);
+      return res.status(500).json({
+        error: 'Supabase upsert failed',
+        details: error.message,
+        code: error.code,
+      });
+    }
+
     return res.json({ status: 'ok', checkin: data });
-  } catch (error: any) {
-    console.error('Error in /api/checkin:', error);
-    return res.status(500).json({ error: 'Internal server error', details: error.message });
+  } catch (err: any) {
+    console.error('Unhandled error in /api/checkin:', err);
+    return res
+      .status(500)
+      .json({ error: 'Internal server error', details: err.message });
   }
 });
 
