@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import NavBar from '../components/NavBar';
 import WeeklyLeaderboard from '../components/WeeklyLeaderboard';
-import { API_BASE_URL } from '../lib/api';
 
 type GoalItem = {
   name: string;
@@ -85,36 +84,9 @@ const GoalsPage: React.FC = () => {
         );
       if (upsertError) throw upsertError;
 
-      // Call backend to register intent & try partner match
-      const res = await fetch(`${API_BASE_URL}/api/register-intent`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          user_id: user.id,
-          primary_focus: primaryFocus,
-        }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(
-          data?.message ||
-            'Registration is closed until the last day of the month.'
-        );
-      }
-
-      const data = await res.json();
-      if (data.partnerMatched) {
-        setMessage(
-          'Goals saved and partner matched. You will see your partner in the dashboard.'
-        );
-      } else {
-        setMessage(
-          'Goals saved. You will be matched with a partner soon.'
-        );
-      }
+      setMessage('Goals saved. 2026 is officially your year.');
     } catch (err: any) {
-      setError(err.message || 'Failed to save goals / register');
+      setError(err.message || 'Failed to save goals');
     } finally {
       setLoading(false);
     }
