@@ -55,29 +55,27 @@ app.get('/api/leaderboard/weekly', async (req, res) => {
       return res.json([]);
     }
 
-    // Group by user_id and calculate average
-    const userStats = new Map<string, { total: number; count: number }>();
+    // Group by user_id and calculate total points
+    const userStats = new Map<string, number>();
     
     checkins.forEach((checkin: any) => {
       const userId = checkin.user_id;
       const points = checkin.achieved_points || 0;
       
       if (!userStats.has(userId)) {
-        userStats.set(userId, { total: 0, count: 0 });
+        userStats.set(userId, 0);
       }
       
-      const stats = userStats.get(userId)!;
-      stats.total += points;
-      stats.count += 1;
+      userStats.set(userId, userStats.get(userId)! + points);
     });
 
-    // Calculate averages and get user IDs
+    // Get user IDs
     const userIds = Array.from(userStats.keys());
     
-    // Fetch user emails
+    // Fetch users to get display_name or email
     const { data: users, error: usersError } = await supabase
       .from('users')
-      .select('id, email')
+      .select('id, display_name, email')
       .in('id', userIds);
 
     if (usersError) {
@@ -88,35 +86,35 @@ app.get('/api/leaderboard/weekly', async (req, res) => {
       });
     }
 
-    // Create a map of user_id -> email
-    const userEmailMap = new Map<string, string>();
+    // Create a map of user_id -> name
+    const userNameMap = new Map<string, string>();
     users?.forEach((user: any) => {
-      userEmailMap.set(user.id, user.email || '');
+      let name = user.display_name;
+      if (!name) {
+        // Try to use email (anonymized) or fallback to User ID
+        if (user.email && user.email.length >= 3) {
+          const firstThree = user.email.substring(0, 3);
+          name = `${firstThree}***`;
+        } else {
+          name = `User ${user.id.substring(0, 8)}`;
+        }
+      }
+      userNameMap.set(user.id, name);
     });
 
     // Build leaderboard entries
     const leaderboard = Array.from(userStats.entries())
-      .map(([userId, stats]) => {
-        const avgPoints = Math.round(stats.total / stats.count);
-        const email = userEmailMap.get(userId) || '';
-        
-        // Anonymize email: first 3 letters + '***'
-        let displayName = 'Anonymous';
-        if (email && email.length >= 3) {
-          const firstThree = email.substring(0, 3);
-          displayName = `${firstThree}***`;
-        } else if (email) {
-          displayName = `${email.substring(0, email.length)}***`;
-        }
+      .map(([userId, totalPoints]) => {
+        const name = userNameMap.get(userId) || `User ${userId.substring(0, 8)}`;
 
         return {
           user_id: userId,
-          display_name: displayName,
-          avg_points: avgPoints,
+          name: name,
+          total_points: totalPoints,
         };
       })
-      .sort((a, b) => b.avg_points - a.avg_points) // Sort DESC by avg_points
-      .slice(0, 10); // Top 10
+      .sort((a, b) => b.total_points - a.total_points) // Sort DESC by total_points
+      .slice(0, 20); // Top 20
 
     return res.json(leaderboard);
   } catch (error: any) {

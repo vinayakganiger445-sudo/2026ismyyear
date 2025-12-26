@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import NavBar from '../components/NavBar';
+import { fetchWeeklyLeaderboard, WeeklyEntry } from '../lib/api';
 
 type GoalItem = {
   name: string;
@@ -22,6 +23,9 @@ const DashboardPage: React.FC = () => {
   const [latestPoints, setLatestPoints] = useState<number | null>(null);
   const [streak, setStreak] = useState(0);
   const [goals, setGoals] = useState<GoalItem[]>([]);
+  const [leaderboard, setLeaderboard] = useState<WeeklyEntry[]>([]);
+  const [leaderboardLoading, setLeaderboardLoading] = useState(false);
+  const [leaderboardError, setLeaderboardError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -132,6 +136,22 @@ const DashboardPage: React.FC = () => {
     };
 
     loadDashboard();
+  }, []);
+
+  useEffect(() => {
+    const loadLeaderboard = async () => {
+      setLeaderboardLoading(true);
+      setLeaderboardError(null);
+      try {
+        const data = await fetchWeeklyLeaderboard();
+        setLeaderboard(data);
+      } catch (err: any) {
+        setLeaderboardError(err.message || 'Failed to load leaderboard');
+      } finally {
+        setLeaderboardLoading(false);
+      }
+    };
+    loadLeaderboard();
   }, []);
 
   if (loading) {
@@ -332,6 +352,114 @@ const DashboardPage: React.FC = () => {
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+        </div>
+
+        {/* Weekly Leaderboard Section */}
+        <div style={{ marginBottom: '2rem' }}>
+          <h2
+            style={{
+              color: 'white',
+              fontSize: '1.2rem',
+              marginBottom: '1rem',
+            }}
+          >
+            Weekly Leaderboard
+          </h2>
+          {leaderboardLoading ? (
+            <p style={{ color: '#9ca3af', fontSize: '0.9rem' }}>Loading leaderboard...</p>
+          ) : leaderboardError ? (
+            <p style={{ color: '#f97373', fontSize: '0.9rem' }}>{leaderboardError}</p>
+          ) : leaderboard.length === 0 ? (
+            <p style={{ color: '#9ca3af', fontSize: '0.9rem' }}>No leaderboard data yet.</p>
+          ) : (
+            <div
+              style={{
+                background: 'rgba(15,23,42,0.8)',
+                borderRadius: '12px',
+                padding: '1rem',
+                border: '1px solid rgba(148,163,184,0.2)',
+                overflowX: 'auto',
+              }}
+            >
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr>
+                    <th
+                      style={{
+                        color: '#9ca3af',
+                        fontSize: '0.85rem',
+                        textAlign: 'left',
+                        padding: '0.5rem',
+                        borderBottom: '1px solid rgba(148,163,184,0.2)',
+                      }}
+                    >
+                      Rank
+                    </th>
+                    <th
+                      style={{
+                        color: '#9ca3af',
+                        fontSize: '0.85rem',
+                        textAlign: 'left',
+                        padding: '0.5rem',
+                        borderBottom: '1px solid rgba(148,163,184,0.2)',
+                      }}
+                    >
+                      Name
+                    </th>
+                    <th
+                      style={{
+                        color: '#9ca3af',
+                        fontSize: '0.85rem',
+                        textAlign: 'right',
+                        padding: '0.5rem',
+                        borderBottom: '1px solid rgba(148,163,184,0.2)',
+                      }}
+                    >
+                      Points
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {leaderboard.map((entry, index) => (
+                    <tr key={entry.user_id}>
+                      <td
+                        style={{
+                          color: 'white',
+                          fontSize: '0.9rem',
+                          padding: '0.5rem',
+                          borderBottom: '1px solid rgba(148,163,184,0.1)',
+                        }}
+                      >
+                        #{index + 1}
+                      </td>
+                      <td
+                        style={{
+                          color: 'white',
+                          fontSize: '0.9rem',
+                          padding: '0.5rem',
+                          borderBottom: '1px solid rgba(148,163,184,0.1)',
+                        }}
+                      >
+                        {entry.name}
+                      </td>
+                      <td
+                        style={{
+                          color: '#22c55e',
+                          fontSize: '0.9rem',
+                          fontWeight: 600,
+                          textAlign: 'right',
+                          padding: '0.5rem',
+                          borderBottom: '1px solid rgba(148,163,184,0.1)',
+                        }}
+                      >
+                        {entry.total_points}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </div>
