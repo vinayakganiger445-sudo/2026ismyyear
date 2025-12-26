@@ -10,6 +10,7 @@
   justify-content: center;
   min-height: 90vh;
   padding: 2rem;
+  padding-top: 5rem;
 }
 
 .hero-content {
@@ -167,4 +168,5 @@
     grid-template-columns: 1fr;
   }
 }
+
 

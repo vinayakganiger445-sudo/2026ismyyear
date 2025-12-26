@@ -1,9 +1,12 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
+import NavBar from '../components/NavBar';
 import './Landing.css';
 
 const Landing: React.FC = () => {
   return (
     <div className="landing">
+      <NavBar />
       <div className="landing-hero">
         <div className="hero-content">
           <h1 className="hero-title">2026 Honesty Pledge</h1>
@@ -11,16 +14,24 @@ const Landing: React.FC = () => {
             Commit to your goals. Join a cohort. Build habits that last.
           </p>
           <p className="hero-description">
-            Join 1000 others in small accountability groups. Daily check-ins at 8pm. 
+            Join 1000 others in small accountability groups. Daily check-ins at 8pm.
             Earn points and badges as you stay consistent.
           </p>
-          <div className="hero-cta">
-            <button className="cta-button primary">Get Started</button>
-            <button className="cta-button secondary">Learn More</button>
+
+          <div className="cta-group">
+            <Link to="/auth">
+              <button className="cta-button primary">
+                Get Started
+              </button>
+            </Link>
+
+            <button className="cta-button secondary">
+              Learn More
+            </button>
           </div>
         </div>
       </div>
-      
+
       <div className="landing-features">
         <div className="feature-grid">
           <div className="feature-card">
@@ -35,7 +46,7 @@ const Landing: React.FC = () => {
           </div>
           <div className="feature-card">
             <div className="feature-icon">🏆</div>
-            <h3>Points & Badges</h3>
+            <h3>Points &amp; Badges</h3>
             <p>Gamify your progress and celebrate your wins</p>
           </div>
         </div>

@@ -77,3 +77,4 @@ npm run dev
 
 The project is configured for Vercel deployment. Frontend and backend can be deployed separately.
 
+
