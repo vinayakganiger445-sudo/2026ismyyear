@@ -11,6 +11,4 @@ https://www.perplexity.ai/search/pro-app-2-39OOBqz3Ts.o0ERsW2GbWg
 
 test2026@example.com
 test2026@example2.com
-test5@example.com
-http://supabase.com/dashboard/project/ihshzupksrhauzvsuxpm/sql/873556f6-6256-4cc7-beb1-e7982ba7c0bf
-https://github.com/vinayakganiger445-sudo/2026ismyyear
+backend : 2026ismyyear-i2jl59hzf-vinayak-s-projects-24cdaccd.vercel.app
