@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabaseClient';
 import { Link } from 'react-router-dom';
 import NavBar from '../components/NavBar';
 import WeeklyLeaderboard from '../components/WeeklyLeaderboard';
+import { API_BASE_URL } from '../lib/api';
 
 type GoalItem = {
   name: string;
@@ -114,21 +115,25 @@ const CheckinPage: React.FC = () => {
       const achievedPoints =
         totalGoals === 0 ? 0 : Math.round((doneCount / totalGoals) * 100);
 
-      const { error: upsertError } = await supabase.from('checkins').upsert(
-        {
-          user_id: userId,
-          date: today,
-          completed_goals: completed,
-          achieved_points: achievedPoints,
-        },
-        { onConflict: 'user_id,date' }
-      );
+      const response = await fetch(`${API_BASE_URL}/api/checkin`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: userId, achieved_points: achievedPoints }),
+      });
 
-      if (upsertError) throw upsertError;
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to save check-in');
+      }
 
-      setMessage(
-        `Check-in saved. You completed ${doneCount}/${totalGoals} goals today.`
-      );
+      const data = await response.json();
+      if (data.status === 'ok') {
+        setMessage(
+          `Check-in saved. You completed ${doneCount}/${totalGoals} goals today.`
+        );
+      } else {
+        throw new Error('Unexpected response from server');
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to save check-in');
     } finally {

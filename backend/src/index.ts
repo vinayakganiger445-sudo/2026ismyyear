@@ -206,48 +206,23 @@ app.post('/api/register-intent', async (req, res) => {
 app.post('/api/checkin', async (req, res) => {
   try {
     const { user_id, achieved_points, date } = req.body;
-
     if (!user_id || achieved_points === undefined) {
-      return res.status(400).json({
-        error: 'Missing required fields: user_id and achieved_points are required',
-      });
+      return res.status(400).json({ error: 'Missing user_id or achieved_points' });
     }
-
-    // Use today's date if not provided
-    const today = new Date();
-    const todayStr = today.toISOString().split('T')[0];
-    const checkinDate = date || todayStr;
-
     const { data, error } = await supabase
       .from('checkins')
-      .insert([
-        {
-          user_id,
-          achieved_points,
-          date: checkinDate,
-        },
-      ])
+      .insert({
+        user_id,
+        achieved_points,
+        date: date || new Date().toISOString().slice(0, 10),
+      })
       .select()
       .single();
-
-    if (error) {
-      console.error('Error inserting checkin:', error);
-      return res.status(500).json({
-        error: 'Failed to insert checkin',
-        details: error.message,
-      });
-    }
-
-    return res.json({
-      status: 'ok',
-      checkin: data,
-    });
+    if (error) throw error;
+    return res.json({ status: 'ok', checkin: data });
   } catch (error: any) {
-    console.error('Error in checkin endpoint:', error);
-    return res.status(500).json({
-      error: 'Internal server error',
-      details: error.message,
-    });
+    console.error('Error in /api/checkin:', error);
+    return res.status(500).json({ error: 'Internal server error', details: error.message });
   }
 });
 
