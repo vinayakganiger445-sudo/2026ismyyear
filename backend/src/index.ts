@@ -7,13 +7,23 @@ import { supabase } from './supabaseClient';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 4000;
 
-app.use(cors());
+// CORS configuration to allow requests from Vercel frontend and localhost
+app.use(
+  cors({
+    origin: [
+      'https://2026ismyyear-navy.vercel.app',
+      'http://localhost:5173',
+      'http://localhost:3000',
+    ],
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', message: 'Habit commitment API is running' });
+  res.json({ status: 'ok' });
 });
 
 app.get('/api/leaderboard/weekly', async (req, res) => {
