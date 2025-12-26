@@ -23,12 +23,14 @@ const CheckinPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 640);
 
   const today = new Date().toISOString().slice(0, 10); // yyyy-mm-dd
 
   useEffect(() => {
     const handleResize = () => {
       setIsDesktop(window.innerWidth >= 1024);
+      setIsMobile(window.innerWidth < 640);
     };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
@@ -187,11 +189,12 @@ const CheckinPage: React.FC = () => {
     <div
       style={{
         minHeight: '100vh',
-        padding: '2rem 1rem',
+        padding: isMobile ? '1rem' : '2rem 1rem',
         paddingTop: '5rem',
         display: 'flex',
         justifyContent: 'center',
         background: 'radial-gradient(circle at top, #020617, #000)',
+        overflowX: 'hidden',
       }}
     >
       <NavBar />
@@ -201,19 +204,30 @@ const CheckinPage: React.FC = () => {
           gridTemplateColumns: isDesktop ? '1fr 320px' : '1fr',
           gap: '1.5rem',
           width: '100%',
-          maxWidth: isDesktop ? '1200px' : '720px',
+          maxWidth: isMobile ? '100%' : isDesktop ? '1200px' : '720px',
+          margin: '0 auto',
+          padding: isMobile ? '0 1rem' : '0',
         }}
       >
         <div
           style={{
             background: 'rgba(15,23,42,0.95)',
-            borderRadius: '20px',
-            padding: '24px',
+            borderRadius: isMobile ? '16px' : '20px',
+            padding: isMobile ? '1rem' : '24px',
             border: '1px solid rgba(148,163,184,0.4)',
             boxShadow: '0 24px 60px rgba(0,0,0,0.7)',
+            width: '100%',
+            maxWidth: isMobile ? '100%' : '28rem',
+            margin: '0 auto',
+            boxSizing: 'border-box',
           }}
         >
-        <h1 style={{ color: 'white', fontSize: '1.6rem', marginBottom: '0.25rem' }}>
+        <h1 style={{ 
+          color: 'white', 
+          fontSize: isMobile ? '1.25rem' : '1.6rem', 
+          marginBottom: '0.25rem',
+          wordWrap: 'break-word',
+        }}>
           Today&apos;s check-in
         </h1>
         <p style={{ color: '#9ca3af', fontSize: '0.9rem', marginBottom: '1rem' }}>
@@ -246,11 +260,14 @@ const CheckinPage: React.FC = () => {
                   background: 'rgba(15,23,42,0.9)',
                   border: '1px solid #4b5563',
                   color: 'white',
+                  width: '100%',
+                  boxSizing: 'border-box',
+                  minWidth: 0,
                 }}
               >
-                <div>
-                  <div style={{ fontWeight: 500 }}>{g.name}</div>
-                  <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>
+                <div style={{ flex: 1, minWidth: 0, marginRight: '0.5rem' }}>
+                  <div style={{ fontWeight: 500, wordWrap: 'break-word' }}>{g.name}</div>
+                  <div style={{ fontSize: '0.75rem', color: '#9ca3af', wordWrap: 'break-word' }}>
                     Target: {g.target} {g.unit}
                   </div>
                 </div>
@@ -258,6 +275,11 @@ const CheckinPage: React.FC = () => {
                   type="checkbox"
                   checked={!!completed[g.name]}
                   onChange={() => toggleGoal(g.name)}
+                  style={{
+                    flexShrink: 0,
+                    width: '1.25rem',
+                    height: '1.25rem',
+                  }}
                 />
               </label>
             ))}
@@ -277,6 +299,7 @@ const CheckinPage: React.FC = () => {
                 fontWeight: 600,
                 cursor: saving ? 'not-allowed' : 'pointer',
                 marginTop: '0.5rem',
+                boxSizing: 'border-box',
               }}
             >
               {saving ? 'Saving...' : 'Save today&apos;s check-in'}
