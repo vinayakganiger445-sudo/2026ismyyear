@@ -30,82 +30,50 @@ app.get('/api/leaderboard/weekly', async (req, res) => {
   try {
     // Calculate date range for last 7 days (including today)
     const today = new Date();
-    const endDate = today.toISOString().split('T')[0];
+    const todayStr = today.toISOString().split('T')[0];
     
     const sevenDaysAgo = new Date(today);
     sevenDaysAgo.setDate(today.getDate() - 6); // 6 days back + today = 7 days total
-    const startDate = sevenDaysAgo.toISOString().split('T')[0];
+    const sevenDaysAgoStr = sevenDaysAgo.toISOString().split('T')[0];
 
     // Fetch all checkins in the date range
-    const { data: checkins, error: checkinsError } = await supabase
+    const { data: rows, error } = await supabase
       .from('checkins')
       .select('user_id, achieved_points, date')
-      .gte('date', startDate)
-      .lte('date', endDate);
+      .gte('date', sevenDaysAgoStr)
+      .lte('date', todayStr)
+      .order('user_id', { ascending: true });
 
-    if (checkinsError) {
-      console.error('Error fetching checkins:', checkinsError);
+    if (error) {
+      console.error('Error fetching checkins:', error);
       return res.status(500).json({
         error: 'Failed to fetch checkins',
-        details: checkinsError.message,
+        details: error.message,
       });
     }
 
-    if (!checkins || checkins.length === 0) {
+    if (!rows || rows.length === 0) {
       return res.json([]);
     }
 
-    // Group by user_id and calculate total points
-    const userStats = new Map<string, number>();
+    // Aggregate total points per user_id
+    const userTotals = new Map<string, number>();
     
-    checkins.forEach((checkin: any) => {
-      const userId = checkin.user_id;
-      const points = checkin.achieved_points || 0;
+    rows.forEach((row: any) => {
+      const userId = row.user_id;
+      const points = row.achieved_points || 0;
       
-      if (!userStats.has(userId)) {
-        userStats.set(userId, 0);
+      if (!userTotals.has(userId)) {
+        userTotals.set(userId, 0);
       }
       
-      userStats.set(userId, userStats.get(userId)! + points);
+      userTotals.set(userId, userTotals.get(userId)! + points);
     });
 
-    // Get user IDs
-    const userIds = Array.from(userStats.keys());
-    
-    // Fetch users to get display_name or email
-    const { data: users, error: usersError } = await supabase
-      .from('users')
-      .select('id, display_name, email')
-      .in('id', userIds);
-
-    if (usersError) {
-      console.error('Error fetching users:', usersError);
-      return res.status(500).json({
-        error: 'Failed to fetch users',
-        details: usersError.message,
-      });
-    }
-
-    // Create a map of user_id -> name
-    const userNameMap = new Map<string, string>();
-    users?.forEach((user: any) => {
-      let name = user.display_name;
-      if (!name) {
-        // Try to use email (anonymized) or fallback to User ID
-        if (user.email && user.email.length >= 3) {
-          const firstThree = user.email.substring(0, 3);
-          name = `${firstThree}***`;
-        } else {
-          name = `User ${user.id.substring(0, 8)}`;
-        }
-      }
-      userNameMap.set(user.id, name);
-    });
-
-    // Build leaderboard entries
-    const leaderboard = Array.from(userStats.entries())
+    // Build leaderboard entries with synthetic names
+    const leaderboard = Array.from(userTotals.entries())
       .map(([userId, totalPoints]) => {
-        const name = userNameMap.get(userId) || `User ${userId.substring(0, 8)}`;
+        const name = `User ${userId.slice(0, 6)}`;
 
         return {
           user_id: userId,

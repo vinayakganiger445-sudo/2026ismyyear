@@ -9,45 +9,40 @@ const Landing: React.FC = () => {
       <NavBar />
       <div className="landing-hero">
         <div className="hero-content">
-          <h1 className="hero-title">2026 Honesty Pledge</h1>
+          <h1 className="hero-title">Make 2026 the year you actually keep your promises.</h1>
           <p className="hero-subtitle">
-            Commit to your goals. Join a cohort. Build habits that last.
+            Take the 2026 Honesty Pledge: set your goals, get matched with someone chasing something similar, check in daily, and climb the weekly leaderboard together.
           </p>
           <p className="hero-description">
-            Join 1000 others in small accountability groups. Daily check-ins at 8pm.
-            Earn points and badges as you stay consistent.
+            The 2026 Honesty Pledge is a one-year commitment with daily check-ins and a public weekly leaderboard. One cheat can cost your whole 2026.
           </p>
 
           <div className="cta-group">
             <Link to="/auth">
               <button className="cta-button primary">
-                Get Started
+                Start your 2026 pledge
               </button>
             </Link>
-
-            <button className="cta-button secondary">
-              Learn More
-            </button>
           </div>
         </div>
       </div>
 
       <div className="landing-features">
+        <h2 style={{ color: 'white', fontSize: '1.5rem', textAlign: 'center', marginBottom: '2rem' }}>
+          How it works
+        </h2>
         <div className="feature-grid">
           <div className="feature-card">
-            <div className="feature-icon">👥</div>
-            <h3>10-Person Cohorts</h3>
-            <p>Get matched with a small group for accountability and support</p>
+            <h3>Set your goals for 2026.</h3>
+            <p>Define your targets for the whole year. You can change them later, but the point is to commit.</p>
           </div>
           <div className="feature-card">
-            <div className="feature-icon">⏰</div>
-            <h3>Daily Check-ins</h3>
-            <p>8pm reminders keep you on track with your commitments</p>
+            <h3>Check in honestly every day.</h3>
+            <p>Mark which goals you hit today. Your weekly score and streak depend on your honesty.</p>
           </div>
           <div className="feature-card">
-            <div className="feature-icon">🏆</div>
-            <h3>Points &amp; Badges</h3>
-            <p>Gamify your progress and celebrate your wins</p>
+            <h3>Climb the weekly leaderboard or watch yourself slip.</h3>
+            <p>See how you rank against others. Higher points mean more consistent weeks.</p>
           </div>
         </div>
       </div>

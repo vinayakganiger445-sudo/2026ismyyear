@@ -158,13 +158,15 @@ const AuthPage: React.FC = () => {
           {showPrimaryFocus 
             ? 'Select Your Primary Focus' 
             : mode === 'signup' 
-            ? 'Create your 2026 account' 
-            : 'Sign in to 2026'}
+            ? 'Create your 2026 pledge account' 
+            : 'Log in'}
         </h1>
         <p style={{ color: '#9ca3af', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
           {showPrimaryFocus 
             ? 'Choose the main goal you want to focus on. This helps us match you with an accountability partner.'
-            : 'Use email + password for now. Later we can switch to magic links once SMTP is set.'}
+            : mode === 'signup'
+            ? 'Accounts are free. Honesty is required.'
+            : 'Welcome back to your 2026 pledge.'}
         </p>
         {/* TEMP: allow signup any day for development */}
         {/* {!todayIsLastDay && mode === 'signup' && (
@@ -317,7 +319,7 @@ const AuthPage: React.FC = () => {
                 marginBottom: '0.75rem',
               }}
             >
-              {loading ? 'Please wait...' : mode === 'signup' ? 'Sign Up' : 'Sign In'}
+              {loading ? 'Please wait...' : mode === 'signup' ? 'Create account' : 'Log in'}
             </button>
 
 
@@ -370,6 +372,11 @@ const AuthPage: React.FC = () => {
         )}
         {error && (
           <p style={{ color: '#f97373', fontSize: '0.8rem' }}>{error}</p>
+        )}
+        {!showPrimaryFocus && mode === 'signup' && (
+          <p style={{ color: '#9ca3af', fontSize: '0.75rem', marginTop: '0.5rem', textAlign: 'center' }}>
+            You&apos;ll set goals and do your first check-in right after this step.
+          </p>
         )}
       </div>
     </div>

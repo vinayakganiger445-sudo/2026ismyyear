@@ -84,7 +84,7 @@ const GoalsPage: React.FC = () => {
         );
       if (upsertError) throw upsertError;
 
-      setMessage('Goals saved. 2026 is officially your year.');
+      setMessage('Goals saved. You&apos;re locked in for 2026.');
     } catch (err: any) {
       setError(err.message || 'Failed to save goals');
     } finally {
@@ -138,8 +138,7 @@ const GoalsPage: React.FC = () => {
               marginBottom: '1.5rem',
             }}
           >
-            Add any goals you want: quitting porn, gym, reading, money, skills.
-            Your daily check-ins and points will be based on these targets.
+            These are your targets for the whole year. You can change them later, but the point is to commit.
           </p>
           <h2 style={{ color: 'white', fontSize: '1.1rem', marginTop: '0.75rem' }}>
             Your main focus for 2026
@@ -184,13 +183,18 @@ const GoalsPage: React.FC = () => {
             <div
               key={index}
               style={{
-                display: 'grid',
-                gridTemplateColumns: '2fr 1fr 1.2fr auto',
-                gap: '0.5rem',
                 marginBottom: '0.75rem',
-                alignItems: 'center',
               }}
             >
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '2fr 1fr 1.2fr auto',
+                  gap: '0.5rem',
+                  alignItems: 'center',
+                  marginBottom: '0.25rem',
+                }}
+              >
               <input
                 type="text"
                 placeholder="Goal name (e.g. No Porn)"
@@ -250,9 +254,13 @@ const GoalsPage: React.FC = () => {
                   color: '#9ca3af',
                   cursor: 'pointer',
                 }}
-              >
-                ✕
-              </button>
+                >
+                  ✕
+                </button>
+              </div>
+              <p style={{ color: '#6b7280', fontSize: '0.7rem', marginTop: '0.25rem', marginLeft: '0.5rem' }}>
+                Target: {goal.target} {goal.unit}. Aim for a number that is ambitious but realistic.
+              </p>
             </div>
           ))}
 

@@ -128,14 +128,17 @@ const CheckinPage: React.FC = () => {
 
       const data = await response.json();
       if (data.status === 'ok') {
-        setMessage(
-          `Check-in saved. You completed ${doneCount}/${totalGoals} goals today.`
-        );
+        setMessage('Saved. Your points and streak are updated.');
       } else {
         throw new Error('Unexpected response from server');
       }
     } catch (err: any) {
-      setError(err.message || 'Failed to save check-in');
+      const errorMessage = err.message || 'Failed to save check-in';
+      if (errorMessage.includes('Failed to save check-in') || errorMessage.includes('Internal server error')) {
+        setError('Couldn&apos;t save today&apos;s check-in. Please try again in a few seconds.');
+      } else {
+        setError(errorMessage);
+      }
     } finally {
       setSaving(false);
     }
@@ -214,7 +217,10 @@ const CheckinPage: React.FC = () => {
           Today&apos;s check-in
         </h1>
         <p style={{ color: '#9ca3af', fontSize: '0.9rem', marginBottom: '1rem' }}>
-          Date: {today}. Be honest. One cheat can cost your whole 2026.
+          Date: {today}
+        </p>
+        <p style={{ color: '#9ca3af', fontSize: '0.85rem', marginBottom: '1rem' }}>
+          Tick only what you truly did today. Your weekly score and streak depend on your honesty.
         </p>
 
         {goals.length === 0 ? (
@@ -275,6 +281,9 @@ const CheckinPage: React.FC = () => {
             >
               {saving ? 'Saving...' : 'Save today&apos;s check-in'}
             </button>
+            <p style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '0.5rem', textAlign: 'center' }}>
+              You can edit this later today, but tomorrow is a new day.
+            </p>
           </>
         )}
 

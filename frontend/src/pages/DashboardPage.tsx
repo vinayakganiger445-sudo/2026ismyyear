@@ -228,7 +228,7 @@ const DashboardPage: React.FC = () => {
             marginBottom: '0.5rem',
           }}
         >
-          Your Dashboard
+          Your 2026 pledge
         </h1>
         <p
           style={{
@@ -237,7 +237,7 @@ const DashboardPage: React.FC = () => {
             marginBottom: '1.5rem',
           }}
         >
-          Track your progress and stay accountable.
+          See your current streak, total points, and how you rank this week.
         </p>
 
         {/* Stats Section */}
@@ -258,10 +258,32 @@ const DashboardPage: React.FC = () => {
             }}
           >
             <div style={{ color: '#9ca3af', fontSize: '0.85rem', marginBottom: '0.5rem' }}>
-              Total check-ins
+              Honesty streak
             </div>
             <div style={{ color: 'white', fontSize: '1.5rem', fontWeight: 600 }}>
-              {totalCheckins}
+              {streak} {streak === 1 ? 'day' : 'days'}
+            </div>
+            <div style={{ color: '#6b7280', fontSize: '0.7rem', marginTop: '0.25rem' }}>
+              Days in a row you&apos;ve checked in.
+            </div>
+          </div>
+
+          <div
+            style={{
+              background: 'rgba(15,23,42,0.8)',
+              borderRadius: '12px',
+              padding: '1rem',
+              border: '1px solid rgba(148,163,184,0.2)',
+            }}
+          >
+            <div style={{ color: '#9ca3af', fontSize: '0.85rem', marginBottom: '0.5rem' }}>
+              Total points
+            </div>
+            <div style={{ color: 'white', fontSize: '1.5rem', fontWeight: 600 }}>
+              {totalCheckins > 0 ? Math.round((averageCompletion * totalCheckins) / 100) : 0}
+            </div>
+            <div style={{ color: '#6b7280', fontSize: '0.7rem', marginTop: '0.25rem' }}>
+              Higher points = more consistent weeks.
             </div>
           </div>
 
@@ -278,22 +300,6 @@ const DashboardPage: React.FC = () => {
             </div>
             <div style={{ color: 'white', fontSize: '1.5rem', fontWeight: 600 }}>
               {averageCompletion}%
-            </div>
-          </div>
-
-          <div
-            style={{
-              background: 'rgba(15,23,42,0.8)',
-              borderRadius: '12px',
-              padding: '1rem',
-              border: '1px solid rgba(148,163,184,0.2)',
-            }}
-          >
-            <div style={{ color: '#9ca3af', fontSize: '0.85rem', marginBottom: '0.5rem' }}>
-              Streak estimate
-            </div>
-            <div style={{ color: 'white', fontSize: '1.5rem', fontWeight: 600 }}>
-              {streak} {streak === 1 ? 'day' : 'days'}
             </div>
           </div>
         </div>
@@ -362,17 +368,20 @@ const DashboardPage: React.FC = () => {
             style={{
               color: 'white',
               fontSize: '1.2rem',
-              marginBottom: '1rem',
+              marginBottom: '0.5rem',
             }}
           >
-            Weekly Leaderboard
+            Weekly leaderboard
           </h2>
+          <p style={{ color: '#9ca3af', fontSize: '0.85rem', marginBottom: '1rem' }}>
+            Top users by total points over the last 7 days.
+          </p>
           {leaderboardLoading ? (
             <p style={{ color: '#9ca3af', fontSize: '0.9rem' }}>Loading leaderboard...</p>
           ) : leaderboardError ? (
-            <p style={{ color: '#f97373', fontSize: '0.9rem' }}>{leaderboardError}</p>
+            <p style={{ color: '#f97373', fontSize: '0.9rem' }}>We couldn&apos;t load the leaderboard. Refresh to try again.</p>
           ) : leaderboard.length === 0 ? (
-            <p style={{ color: '#9ca3af', fontSize: '0.9rem' }}>No leaderboard data yet.</p>
+            <p style={{ color: '#9ca3af', fontSize: '0.9rem' }}>No check-ins yet. Once people start checking in, rankings will appear here.</p>
           ) : (
             <div
               style={{
