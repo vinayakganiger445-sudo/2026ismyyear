@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import supabase from '../supabaseClient';
+import { supabase } from '../lib/supabaseClient';
 import NavBar from '../components/NavBar';
 import { fetchWeeklyLeaderboard, WeeklyEntry } from '../lib/api';
-import PublicGoals from '../components/PublicGoals';
 
 type GoalItem = {
   name: string;
@@ -14,6 +13,117 @@ type GoalItem = {
 type CheckinRow = {
   date: string;
   achieved_points: number;
+};
+
+type PublicGoal = {
+  id: string;
+  email: string;
+  primary_focus: string | null;
+  goal_2026: string | null;
+  current_streak: number | null;
+  longest_streak: number | null;
+  created_at: string;
+};
+
+const PublicGoals: React.FC = () => {
+  const [goals, setGoals] = useState<PublicGoal[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchGoals = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const { data, error: fetchError } = await supabase
+        .from('public_goals')
+        .select('id, email, primary_focus, goal_2026, current_streak, longest_streak, created_at')
+        .limit(20);
+
+      if (fetchError) throw fetchError;
+
+      setGoals(data || []);
+    } catch (err: any) {
+      setError(err.message || 'Could not load public goals.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchGoals();
+  }, []);
+
+  const getEmailPrefix = (email: string) => {
+    return email.split('@')[0];
+  };
+
+  if (loading) {
+    return <p className="text-gray-400">Loading public goals…</p>;
+  }
+
+  if (error) {
+    return (
+      <div>
+        <p className="text-red-400">{error}</p>
+        <button
+          onClick={fetchGoals}
+          className="mt-2 px-3 py-1 text-sm border border-gray-600 rounded hover:bg-gray-700"
+        >
+          Refresh
+        </button>
+      </div>
+    );
+  }
+
+  if (goals.length === 0) {
+    return <p className="text-gray-400">No public goals yet. Be the first to make yours public.</p>;
+  }
+
+  return (
+    <div>
+      <button
+        onClick={fetchGoals}
+        className="mb-4 px-3 py-1 text-sm border border-gray-600 rounded hover:bg-gray-700 text-gray-300"
+      >
+        Refresh
+      </button>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {goals.map((goal) => (
+          <div
+            key={goal.id}
+            className="bg-white dark:bg-slate-800 rounded-lg shadow p-4"
+          >
+            <div className="font-bold text-gray-900 dark:text-white mb-1">
+              {getEmailPrefix(goal.email)}
+            </div>
+            {goal.primary_focus && (
+              <div className="text-xs text-gray-600 dark:text-gray-400 mb-2">
+                {goal.primary_focus}
+              </div>
+            )}
+            {goal.goal_2026 && (
+              <div className="text-base text-gray-900 dark:text-white mb-3">
+                {goal.goal_2026}
+              </div>
+            )}
+            <div className="flex gap-2 flex-wrap">
+              {goal.current_streak !== null && goal.current_streak > 0 && (
+                <span className="text-xs px-2 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300 rounded">
+                  🔥 {goal.current_streak} days
+                </span>
+              )}
+              {goal.longest_streak !== null && goal.longest_streak > 0 && (
+                <span className="text-xs px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 rounded">
+                  🏆 {goal.longest_streak} days
+                </span>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 };
 
 const DashboardPage: React.FC = () => {
@@ -529,8 +639,17 @@ const DashboardPage: React.FC = () => {
         )}
       </div>
 
-      {/* Public Goals Section */}
+      {/* Public 2026 Goals Section */}
       <div style={{ marginTop: '2rem', width: '100%', maxWidth: '720px' }}>
+        <h2
+          style={{
+            color: 'white',
+            fontSize: '1.2rem',
+            marginBottom: '1rem',
+          }}
+        >
+          Public 2026 Goals
+        </h2>
         <PublicGoals />
       </div>
     </div>
