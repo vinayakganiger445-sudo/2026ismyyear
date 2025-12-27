@@ -1,6 +1,6 @@
 // frontend/src/pages/CheckinPage.tsx
 import React, { useEffect, useState } from 'react';
-import { supabase } from '../supabaseClient';
+import supabase from '../supabaseClient';
 import { Link } from 'react-router-dom';
 import NavBar from '../components/NavBar';
 import WeeklyLeaderboard from '../components/WeeklyLeaderboard';
