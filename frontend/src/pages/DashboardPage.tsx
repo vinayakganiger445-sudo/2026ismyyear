@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabaseClient';
+import { supabase } from '../supabaseClient';
 import NavBar from '../components/NavBar';
 import { fetchWeeklyLeaderboard, WeeklyEntry } from '../lib/api';
+import PublicGoals from '../components/PublicGoals';
 
 type GoalItem = {
   name: string;
@@ -526,6 +527,11 @@ const DashboardPage: React.FC = () => {
             {error}
           </p>
         )}
+      </div>
+
+      {/* Public Goals Section */}
+      <div style={{ marginTop: '2rem', width: '100%', maxWidth: '720px' }}>
+        <PublicGoals />
       </div>
     </div>
   );

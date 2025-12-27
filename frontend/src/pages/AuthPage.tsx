@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabaseClient';
+import { supabase } from '../supabaseClient';
 import NavBar from '../components/NavBar';
 import { isLastDayOfMonth } from '../lib/dateUtils';
 import { API_BASE_URL } from '../lib/api';
