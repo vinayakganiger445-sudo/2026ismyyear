@@ -10,7 +10,9 @@ const ProfilePage: React.FC = () => {
   const [goal2026, setGoal2026] = useState('');
   const [goalPublic, setGoalPublic] = useState(false);
   const [currentStreak, setCurrentStreak] = useState(0);
+  const [longestStreak, setLongestStreak] = useState(0);
   const [userId, setUserId] = useState<string | null>(null);
+  const [savingGoal, setSavingGoal] = useState(false);
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -35,7 +37,7 @@ const ProfilePage: React.FC = () => {
         // Load user profile
         const { data: userProfile, error: profileError } = await supabase
           .from('users')
-          .select('goal_2026, goal_public, current_streak')
+          .select('goal_2026, goal_public, current_streak, longest_streak')
           .eq('id', user.id)
           .single();
 
@@ -47,6 +49,7 @@ const ProfilePage: React.FC = () => {
           setGoal2026(userProfile.goal_2026 || '');
           setGoalPublic(userProfile.goal_public || false);
           setCurrentStreak(userProfile.current_streak || 0);
+          setLongestStreak(userProfile.longest_streak || 0);
         }
       } catch (err: any) {
         setError(err.message || 'Failed to load profile');
@@ -57,6 +60,32 @@ const ProfilePage: React.FC = () => {
 
     loadProfile();
   }, []);
+
+  const handleSaveGoal = async () => {
+    if (!userId) return;
+
+    setSavingGoal(true);
+    setMessage(null);
+    setError(null);
+
+    try {
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({
+          goal_2026: goal2026.trim(),
+          goal_public: goalPublic,
+        })
+        .eq('id', userId);
+
+      if (updateError) throw updateError;
+
+      setMessage('Goal saved successfully.');
+    } catch (err: any) {
+      setError(err.message || 'Failed to save goal');
+    } finally {
+      setSavingGoal(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -148,18 +177,25 @@ const ProfilePage: React.FC = () => {
           Manage your profile and public information.
         </p>
 
-        <form onSubmit={handleSubmit}>
-          {/* 2026 Main Goal Section */}
-          <div style={{ marginBottom: '2rem' }}>
-            <h2
-              style={{
-                color: 'white',
-                fontSize: '1.2rem',
-                marginBottom: '1rem',
-              }}
-            >
-              2026 Main Goal
-            </h2>
+        {/* 2026 Main Goal Section */}
+        <div
+          style={{
+            background: 'rgba(15,23,42,0.95)',
+            borderRadius: '16px',
+            padding: '1.5rem',
+            border: '1px solid rgba(148,163,184,0.4)',
+            marginBottom: '2rem',
+          }}
+        >
+          <h2
+            style={{
+              color: 'white',
+              fontSize: '1.2rem',
+              marginBottom: '1rem',
+            }}
+          >
+            2026 Main Goal
+          </h2>
 
             <label
               style={{
@@ -262,8 +298,34 @@ const ProfilePage: React.FC = () => {
                 </div>
               </div>
             )}
+
+            {/* Save Goal Button */}
+            <button
+              type="button"
+              onClick={handleSaveGoal}
+              disabled={savingGoal}
+              style={{
+                width: '100%',
+                padding: '0.8rem',
+                borderRadius: '999px',
+                border: 'none',
+                background: savingGoal
+                  ? '#4b5563'
+                  : 'linear-gradient(135deg, #22c55e, #16a34a)',
+                color: 'white',
+                fontWeight: 600,
+                cursor: savingGoal ? 'not-allowed' : 'pointer',
+                fontSize: '0.95rem',
+                marginTop: '1rem',
+              }}
+            >
+              {savingGoal ? 'Saving...' : 'Save goal'}
+            </button>
           </div>
 
+        <form onSubmit={handleSubmit}>
+          {/* Other profile fields can go here */}
+          
           {/* Submit Button */}
           <button
             type="submit"
