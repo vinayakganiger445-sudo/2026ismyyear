@@ -63,6 +63,12 @@ const NavBar: React.FC = () => {
         >
           Check-in
         </Link>
+        <Link
+          to="/profile"
+          style={isActive('/profile') ? activeLinkStyle : linkStyle}
+        >
+          Profile
+        </Link>
       </div>
     </nav>
   );
