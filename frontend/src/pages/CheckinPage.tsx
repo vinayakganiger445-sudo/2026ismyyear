@@ -1,10 +1,9 @@
 // frontend/src/pages/CheckinPage.tsx
 import React, { useEffect, useState } from 'react';
-import supabase from '../supabaseClient';
+import { supabase } from '../lib/supabaseClient';
 import { Link } from 'react-router-dom';
 import NavBar from '../components/NavBar';
 import WeeklyLeaderboard from '../components/WeeklyLeaderboard';
-import { API_BASE_URL } from '../lib/api';
 
 type GoalItem = {
   name: string;
@@ -62,7 +61,8 @@ const CheckinPage: React.FC = () => {
           .single();
 
         if (goalsError) {
-          throw goalsError;
+          console.error('Error fetching goals:', goalsError);
+          throw new Error(`Failed to load goals: ${goalsError.message}`);
         }
 
         const goalArray = (goalsRow?.goals || []) as GoalItem[];
@@ -76,7 +76,8 @@ const CheckinPage: React.FC = () => {
           .maybeSingle();
 
         if (checkinError && checkinError.code !== 'PGRST116') {
-          throw checkinError;
+          console.error('Error fetching check-in:', checkinError);
+          throw new Error(`Failed to load check-in: ${checkinError.message}`);
         }
 
         if (checkinRow?.completed_goals) {
@@ -89,6 +90,7 @@ const CheckinPage: React.FC = () => {
           setCompleted(initial);
         }
       } catch (err: any) {
+        console.error('Error loading check-in data:', err);
         setError(err.message || 'Failed to load data');
       } finally {
         setLoading(false);
@@ -117,30 +119,31 @@ const CheckinPage: React.FC = () => {
       const achievedPoints =
         totalGoals === 0 ? 0 : Math.round((doneCount / totalGoals) * 100);
 
-      const response = await fetch(`${API_BASE_URL}/api/checkin`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: userId, achieved_points: achievedPoints }),
-      });
+      const { data, error: upsertError } = await supabase
+        .from('checkins')
+        .upsert(
+          {
+            user_id: userId,
+            date: today,
+            achieved_points: achievedPoints,
+          },
+          {
+            onConflict: 'user_id,date',
+          }
+        )
+        .select()
+        .single();
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || 'Failed to save check-in');
+      if (upsertError) {
+        console.error('Error saving check-in:', upsertError);
+        throw new Error(`Failed to save check-in: ${upsertError.message}`);
       }
 
-      const data = await response.json();
-      if (data.status === 'ok') {
-        setMessage('Saved. Your points and streak are updated.');
-      } else {
-        throw new Error('Unexpected response from server');
-      }
+      setMessage('Saved. Your points and streak are updated.');
     } catch (err: any) {
+      console.error('Error in handleSave:', err);
       const errorMessage = err.message || 'Failed to save check-in';
-      if (errorMessage.includes('Failed to save check-in') || errorMessage.includes('Internal server error')) {
-        setError('Couldn&apos;t save today&apos;s check-in. Please try again in a few seconds.');
-      } else {
-        setError(errorMessage);
-      }
+      setError(errorMessage);
     } finally {
       setSaving(false);
     }
