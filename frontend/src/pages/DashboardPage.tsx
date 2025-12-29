@@ -4,19 +4,19 @@ import { useNavigate } from 'react-router-dom';
 import type { User } from '@supabase/supabase-js';
 
 type Goal = {
-  id: string;
-  user_id: string;
+  id?: string;
+  user_id?: string;
   goal_text: string;
   streak: number;
-  last_checkin: string | null;
+  last_checkin?: string | null;
 };
 
 type PublicGoal = {
   id: string;
-  email: string;
   goal_text: string;
+  email: string;
   streak: number;
-  comment: string | null;
+  comment?: string | null;
 };
 
 function DashboardPage() {
@@ -62,7 +62,7 @@ function DashboardPage() {
       goal_text: goalText
     }).select().single();
     if (!error && data) {
-      setUserGoal(data);
+      setUserGoal({ goal_text: goalText, streak: 0, id: data.id, user_id: user.id });
       setGoalText('');
     }
   };
