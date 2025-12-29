@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import NavBar from '../components/NavBar';
-import { fetchWeeklyLeaderboard, WeeklyEntry } from '../lib/api';
 
 type GoalItem = {
   name: string;
@@ -134,7 +133,7 @@ const DashboardPage: React.FC = () => {
   const [latestPoints, setLatestPoints] = useState<number | null>(null);
   const [streak, setStreak] = useState(0);
   const [goals, setGoals] = useState<GoalItem[]>([]);
-  const [leaderboard, setLeaderboard] = useState<WeeklyEntry[]>([]);
+  const [leaderboard, setLeaderboard] = useState<Array<{ user_id: string; name: string; total_points: number }>>([]);
   const [leaderboardLoading, setLeaderboardLoading] = useState(false);
   const [leaderboardError, setLeaderboardError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -254,9 +253,63 @@ const DashboardPage: React.FC = () => {
       setLeaderboardLoading(true);
       setLeaderboardError(null);
       try {
-        const data = await fetchWeeklyLeaderboard();
-        setLeaderboard(data);
+        // Calculate date range for last 7 days (including today)
+        const today = new Date();
+        const todayStr = today.toISOString().split('T')[0];
+        
+        const sevenDaysAgo = new Date(today);
+        sevenDaysAgo.setDate(today.getDate() - 6); // 6 days back + today = 7 days total
+        const sevenDaysAgoStr = sevenDaysAgo.toISOString().split('T')[0];
+
+        // Fetch all checkins in the date range
+        const { data: rows, error: checkinsError } = await supabase
+          .from('checkins')
+          .select('user_id, achieved_points, date')
+          .gte('date', sevenDaysAgoStr)
+          .lte('date', todayStr)
+          .order('user_id', { ascending: true });
+
+        if (checkinsError) {
+          console.error('Error fetching checkins for leaderboard:', checkinsError);
+          throw new Error(`Failed to fetch checkins: ${checkinsError.message}`);
+        }
+
+        if (!rows || rows.length === 0) {
+          setLeaderboard([]);
+          return;
+        }
+
+        // Aggregate total points per user_id
+        const userTotals = new Map<string, number>();
+        
+        rows.forEach((row: any) => {
+          const userId = row.user_id;
+          const points = row.achieved_points || 0;
+          
+          if (!userTotals.has(userId)) {
+            userTotals.set(userId, 0);
+          }
+          
+          userTotals.set(userId, userTotals.get(userId)! + points);
+        });
+
+        // Build leaderboard entries with synthetic names
+        const leaderboardData = Array.from(userTotals.entries())
+          .map(([userId, totalPoints]) => {
+            const name = `User ${userId.slice(0, 6)}`;
+
+            return {
+              user_id: userId,
+              name: name,
+              total_points: totalPoints,
+            };
+          })
+          .sort((a, b) => b.total_points - a.total_points) // Sort DESC by total_points
+          .slice(0, 20); // Top 20
+
+        setLeaderboard(leaderboardData);
       } catch (err: any) {
+        console.error('Error loading leaderboard:', err);
         setLeaderboardError(err.message || 'Failed to load leaderboard');
       } finally {
         setLeaderboardLoading(false);

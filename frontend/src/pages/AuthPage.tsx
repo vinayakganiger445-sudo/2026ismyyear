@@ -1,9 +1,8 @@
 import { useNavigate } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
-import supabase from '../supabaseClient';
+import { supabase } from '../lib/supabaseClient';
 import NavBar from '../components/NavBar';
-import { isLastDayOfMonth } from '../lib/dateUtils';
-import { API_BASE_URL } from '../lib/api';
+import { isLastDayOfMonth, getCurrentMonthString } from '../lib/dateUtils';
 
 const todayIsLastDay = isLastDayOfMonth(new Date());
 
@@ -96,25 +95,83 @@ const AuthPage: React.FC = () => {
         throw new Error('User not found');
       }
 
-      const response = await fetch(`${API_BASE_URL}/api/register-intent`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          user_id: user.id,
-          primary_focus: primaryFocus,
-        }),
-      });
+      const today = new Date();
+      const currentMonth = getCurrentMonthString(today);
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to register intent');
+      // Update user row with primary_focus, joined_month, and is_new_user
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({
+          primary_focus: primaryFocus,
+          joined_month: currentMonth,
+          is_new_user: false,
+        })
+        .eq('id', user.id);
+
+      if (updateError) {
+        console.error('Error updating user:', updateError);
+        throw new Error(`Failed to update user: ${updateError.message}`);
       }
 
-      const result = await response.json();
-      
-      if (result.partnerMatched) {
+      // Try to find a partner (look for another user with same primary_focus and no partner)
+      let partnerMatched = false;
+      try {
+        // Check if user already has a partner
+        const { data: currentUser } = await supabase
+          .from('users')
+          .select('partner_id')
+          .eq('id', user.id)
+          .single();
+
+        if (!currentUser?.partner_id) {
+          // Find a potential partner
+          const { data: potentialPartner, error: findError } = await supabase
+            .from('users')
+            .select('id, primary_focus')
+            .eq('primary_focus', primaryFocus)
+            .is('partner_id', null)
+            .neq('id', user.id)
+            .limit(1)
+            .maybeSingle();
+
+          if (!findError && potentialPartner) {
+            // Match the two users
+            const partnerId = potentialPartner.id;
+
+            // Update current user with partner_id
+            const { error: updateUser1Error } = await supabase
+              .from('users')
+              .update({ partner_id: partnerId })
+              .eq('id', user.id);
+
+            if (!updateUser1Error) {
+              // Update partner with current user's id
+              const { error: updateUser2Error } = await supabase
+                .from('users')
+                .update({ partner_id: user.id })
+                .eq('id', partnerId);
+
+              if (!updateUser2Error) {
+                partnerMatched = true;
+              } else {
+                // Rollback: remove partner_id from first user if second update fails
+                await supabase
+                  .from('users')
+                  .update({ partner_id: null })
+                  .eq('id', user.id);
+                console.error('Error updating partner:', updateUser2Error);
+              }
+            } else {
+              console.error('Error updating user with partner:', updateUser1Error);
+            }
+          }
+        }
+      } catch (matchError: any) {
+        console.error('Error finding partner:', matchError);
+        // Continue even if matching fails - user is still registered
+      }
+
+      if (partnerMatched) {
         setMessage(`Account created! You've been matched with a partner.`);
       } else {
         setMessage('Account created! You will be matched with a partner when one becomes available.');
@@ -125,6 +182,7 @@ const AuthPage: React.FC = () => {
         navigate('/goals');
       }, 2000);
     } catch (err: any) {
+      console.error('Error in handleRegisterIntent:', err);
       setError(err.message || 'Failed to register intent');
     } finally {
       setRegisteringIntent(false);
