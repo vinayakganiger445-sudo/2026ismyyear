@@ -1,29 +1,22 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Landing from './pages/Landing';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import LandingPage from './pages/LandingPage';
 import AuthPage from './pages/AuthPage';
-import DashboardPage from './pages/DashboardPage';
 import ProfilePage from './pages/ProfilePage';
-import './App.css';
-
+import DashboardPage from './pages/DashboardPage';
 
 function App() {
   return (
-    <Router
-      future={{
-        v7_startTransition: true,
-        v7_relativeSplatPath: true,
-      }}
-    >
+    <Router>
       <Routes>
-        <Route path="/" element={<Landing />} />
+        <Route path="/" element={<LandingPage />} />
         <Route path="/auth" element={<AuthPage />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </Router>
   );
 }
-
 
 export default App;

@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
-import NavBar from '../components/NavBar';
+import { useNavigate } from 'react-router-dom';
 
 const ProfilePage: React.FC = () => {
   const [loading, setLoading] = useState(true);
@@ -116,22 +116,18 @@ const ProfilePage: React.FC = () => {
 
   if (loading) {
     return (
-      <>
-        <NavBar />
-        <div
-          style={{
-            minHeight: '100vh',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: 'radial-gradient(circle at top, #020617, #000)',
-            color: 'white',
-            paddingTop: '4rem',
-          }}
-        >
-          <p>Loading profile...</p>
-        </div>
-      </>
+      <div
+        style={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'radial-gradient(circle at top, #020617, #000)',
+          color: 'white',
+        }}
+      >
+        <p>Loading profile...</p>
+      </div>
     );
   }
 
@@ -140,13 +136,11 @@ const ProfilePage: React.FC = () => {
       style={{
         minHeight: '100vh',
         padding: '2rem 1rem',
-        paddingTop: '5rem',
         display: 'flex',
         justifyContent: 'center',
         background: 'radial-gradient(circle at top, #020617, #000)',
       }}
     >
-      <NavBar />
       <div
         style={{
           width: '100%',
